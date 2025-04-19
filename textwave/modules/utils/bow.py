@@ -34,7 +34,8 @@ class Bag_of_Words:
         Returns:
             list: A list of word tokens extracted from the text.
         """
-        pass
+        return re.findall(r'\b\w+\b', text.lower())
+
 
     def fit(self, documents):
         """
@@ -50,7 +51,13 @@ class Bag_of_Words:
         Returns:
             Bag_of_Words: The fitted transformer instance with an updated vocabulary_ attribute.
         """
-        pass
+        unique_tokens = set()
+        for doc in documents:
+            tokens = self._tokenize(doc)
+            unique_tokens.update(tokens)
+
+        self.vocabulary_ = {token: idx for idx, token in enumerate(sorted(unique_tokens))}
+        return self
 
     def transform(self, document):
         """
@@ -67,7 +74,14 @@ class Bag_of_Words:
             dict: A dictionary mapping each term (from the learned vocabulary) to its count in the document.
                   Only tokens present in the vocabulary are included.
         """
-        pass
+        tokens = self._tokenize(document)
+        token_counts = Counter(tokens)
+
+        bow_vector = {
+            token: count for token, count in token_counts.items()
+            if token in self.vocabulary_
+        }
+        return bow_vector
 
 
 if __name__ == "__main__":

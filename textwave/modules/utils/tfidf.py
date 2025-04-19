@@ -48,7 +48,7 @@ class TF_IDF:
             >>> print(tokens)
             ['hello', 'world']
         """
-        pass
+        return re.findall(r'\b\w+\b', text.lower())
 
     def fit(self, documents):
         """
@@ -77,7 +77,23 @@ class TF_IDF:
             >>> print(transformer.vocabulary_)
             {'brown': 0, 'dog': 1, 'fox': 2, 'lazy': 3, 'quick': 4, 'the': 5}
         """
-        pass
+        doc_freq = defaultdict(int)
+        total_docs = len(documents)
+
+        for doc in documents:
+            tokens = set(self._tokenize(doc))  # Unique tokens in this doc
+            for token in tokens:
+                doc_freq[token] += 1
+
+        # Compute IDF
+        self.idf_ = {
+            token: math.log(total_docs / (freq + 1)) + 1
+            for token, freq in doc_freq.items()
+        }
+
+        # Create vocabulary mapping each token to an index
+        self.vocabulary_ = {token: idx for idx, token in enumerate(sorted(doc_freq))}
+        return self
 
     def transform(self, document):
         """
@@ -100,7 +116,18 @@ class TF_IDF:
             >>> print(tfidf_vector)
             {'fox': 0.709, 'quick': 0.709, 'the': 0.354}
         """
-        pass
+        tokens = self._tokenize(document)
+        total_tokens = len(tokens)
+        token_counts = Counter(tokens)
+
+        tfidf_vector = {}
+        for token, count in token_counts.items():
+            if token in self.idf_:
+                tf = count / total_tokens
+                tfidf = tf * self.idf_[token]
+                tfidf_vector[token] = tfidf
+
+        return tfidf_vector
 
 
 if __name__ == "__main__":
